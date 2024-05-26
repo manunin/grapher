@@ -5,6 +5,7 @@ import java.util.Objects;
 public class Node {
     private final String label;
 
+
     public Node(String label) {
         this.label = label;
     }
