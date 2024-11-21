@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Vue ###
+/node_modules/
+npm-debug.log
+
+
+
