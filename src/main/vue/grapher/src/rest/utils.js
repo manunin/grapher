@@ -1,67 +1,72 @@
 import apiClient from './apiClient';
+import ToastEventBus from 'primevue/toasteventbus';
 
-function loadDataWithFormData(url, formData, options = {}) {
-    return apiClient.post(url, formData, options).then((resp) => {
-        return resp ? resp.data : null;
-    }).catch((err) => {
-        if (needLogError(err)) {
-        console.error(`Unable to load data from ${url} : ${err}`);
-        }
+const loadData = (url, options = {}) => {
+  return apiClient.get(url, options)
+      .then(processResponse(url))
+      .catch((err) => {
+        showError(err, url);
         throw err;
-    })
+      })
 }
 
-function loadData(url, options = {}) {
-  return apiClient.get(url, options).then((resp) => {
+const loadDataWithPost = (url, options = {}) => {
+  return apiClient.post(url, options)
+      .then(processResponse(url))
+      .catch((err) => {
+        showError(err, url);
+        throw err;
+      })
+}
+
+const putData = (url, data = {}, options = {}) => {
+  return apiClient.put(url, data, options)
+      .then(processResponse(url))
+      .catch((err) => {
+        showError(err, url);
+        throw err;
+      })
+}
+
+const deleteData = (url, options = {}) => {
+  return apiClient.delete(url, options)
+      .then(processResponse(url))
+      .catch((err) => {
+        showError(err, url);
+        throw err;
+      })
+}
+
+const postData = (url, data = {}, options = {}) => {
+  return apiClient.post(url, data, options)
+      .then(processResponse(url))
+      .catch((err) => {
+        showError(err, url);
+        throw err;
+      })
+}
+
+
+const processResponse = (url) => {
+  return (resp) => {
+    if (resp.status !== 200) {
+      showError(resp, url);
+      return null;
+    }
+    showSuccess();
     return resp ? resp.data : null;
-  }).catch((err) => {
-    if (needLogError(err)) {
-      console.error(`Unable to load data from ${url} : ${err}`);
-    }
-    throw err;
-  })
+  };
 }
 
-function loadDataWithPost(url, options = {}) {
-  return apiClient.post(url, options).then((resp) => {
-    return resp ? resp.data : null;
-  }).catch((err) => {
-    if (needLogError(err)) {
-      console.error(`Unable to load data from ${url} : ${err}`);
-    }
-    throw err;
-  })
+const showSuccess = () => {
+  ToastEventBus.emit('add', {severity: 'success', summary: 'Success', detail: 'Data loaded'});
 }
 
-function putData(url, data = {}, options = {}) {
-  return apiClient.put(url, data, options).catch((err) => {
-    if (needLogError(err)) {
-      console.error(`Unable to put data to ${url} : ${err}`);
-    }
-    throw err;
-  })
-}
-
-function deleteData(url, options = {}) {
-  return apiClient.delete(url, options).catch((err) => {
-    if (needLogError(err)) {
-      console.error(`Unable to delete data from ${url} : ${err}`);
-    }
-    throw err;
-  })
-}
-
-function postData(url, data = {}, options = {}) {
-  return apiClient.post(url, data, options).catch((err) => {
-    if (needLogError(err)) {
-      console.error(`Unable to post data to ${url} : ${err}`);
-    }
-    throw err;
-  })
-}
-
-function needLogError(err) {
-  return err.response == null || err.response.status !== 422;
+const showError = (resp, url) => {
+  const summary = resp.data.error.summary || 'Error';
+  const details = resp.data.error.details || resp;
+  ToastEventBus.emit('add', {severity: 'error', summary: summary, detail: details});
+  console.error(`Unable to load data from ${url} : ${resp.data.error}`);
 }
 
 export {loadData, loadDataWithPost, postData, putData, deleteData};

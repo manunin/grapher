@@ -18,7 +18,7 @@ const props = defineProps({
 const parsedResults = computed(() => {
   return props.results?.map((result) => {
     return {
-      link: result.source + ' -> ' + result.target,
+      link: result.source?.name + ' -> ' + result.target?.name,
     };
   });
 });

@@ -4,7 +4,7 @@ class UploadService {
     static instance = null;
 
     uploadFile(formData) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             setTimeout(() => {
                 resolve({status: 200});
             }, 2000);
@@ -21,11 +21,7 @@ class UploadService {
 
 class UploadServiceImpl extends UploadService {
     uploadFile(formData) {
-        return loadDataWithPost('/file/upload', formData).then(
-            response => {
-                return response.json();
-            }
-        );
+        return loadDataWithPost('/file/upload', formData, toast);
     }
 }
 

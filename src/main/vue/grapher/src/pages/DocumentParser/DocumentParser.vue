@@ -18,6 +18,7 @@
 import RelationshipList from './components/RelationshipList.vue';
 import {defineComponent, ref} from 'vue';
 import {useToast} from 'primevue/usetoast';
+import {useOverlay} from '@/composable/useoverlay';
 import {MAX_FILE_SIZE} from "@/pages/DocumentParser/constants.js";
 import UploadService from "@/pages/DocumentParser/service/UploadService.js";
 
@@ -29,6 +30,7 @@ defineComponent({
 const getMaxFileSize = () => MAX_FILE_SIZE;
 const uploadService = UploadService.getInstance();
 const toast = useToast();
+const overlay = useOverlay();
 
 const processing = ref(false);
 const results = ref([]);
@@ -57,20 +59,9 @@ const validateFile = (file) => {
 const uploadFile = async (file) => {
   const formData = prepareFormData(file);
   processing.value = true;
-  uploadService.uploadFile(formData).then((response) => {
-    if (response.status !== 200) {
-      toast.add({severity: 'error', summary: 'Error', detail: 'File upload failed'});
-      processing.value = false;
-      return;
-    }
-    toast.add({severity: 'success', summary: 'Success', detail: 'File uploaded'});
-    results.value = response.data;
-    console.log(response);
-  }).catch((error) => {
-    toast.add({severity: 'error', summary: 'Error', detail: 'File upload failed'});
-  }).finally(() => {
-    processing.value = false;
-  });
+  uploadService.uploadFile(formData)
+      .then((response) => results.value = response)
+      .finally(() => processing.value = false);
 };
 
 const prepareFormData = (file) => {
