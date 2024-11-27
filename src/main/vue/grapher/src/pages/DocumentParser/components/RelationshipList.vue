@@ -1,7 +1,11 @@
 <template>
-  <div class="card">
-    Result
-    <DataTable :value="parsedResults" tableStyle="min-width: 50rem">
+  <div class="mt-4 p-4 bg-gray-100 rounded">
+    <div v-if="parsedResults.length === 0">
+      {{'No relationships found'}}
+    </div>
+    <DataTable v-else
+               :value="parsedResults"
+               tableStyle="min-width: 50rem">
       <Column field="link" header="Link"></Column>
     </DataTable>
   </div>

@@ -30,9 +30,10 @@ public class FileParserServiceImpl implements FileParserService {
 
     private static List<Link> parse(final Stream<String> lines) {
         return lines
-                .map(line -> line.split(","))
+                .map(line -> line.trim().split(","))
                 .filter(parts -> parts.length == 4)
-                .map(parts -> new Link(Long.parseLong(parts[0]), new Node(1L, parts[1]), new Node(2L, parts[2]), parts[3]))
+                .map(parts -> new Link(Long.parseLong(parts[0].trim()), new Node(1L, parts[1].trim()),
+                        new Node(2L, parts[2].trim()), parts[3].trim()))
                 .collect(Collectors.toList());
     }
 }

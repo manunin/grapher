@@ -14,6 +14,7 @@ import ConfirmationPopup from 'primevue/confirmpopup';
 import ProgressSpinner from "primevue/progressspinner";
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
+import DocumentParser from "@/pages/DocumentParser/DocumentParser.vue";
 import Overlay from "@/components/Overlay.vue";
 
 const app = createApp(App);
@@ -34,5 +35,6 @@ app.component('ConfirmationPopup', ConfirmationPopup);
 app.component('ProgressSpinner', ProgressSpinner);
 app.component('Toast', Toast);
 app.component('Overlay', Overlay);
+app.component('DocumentParser', DocumentParser);
 
 app.mount('#app');

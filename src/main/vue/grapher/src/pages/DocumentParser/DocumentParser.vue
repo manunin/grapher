@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="py-8 px-24 h-full flex flex-col">
     <FileUpload v-if="!processing"
                 choose-label="Upload"
                 mode="basic"
@@ -8,7 +8,7 @@
       <p>File processing...</p>
       <ProgressBar mode="indeterminate" style="height: 6px"/>
     </template>
-    <RelationshipList :results="results"/>
+    <RelationshipList class="flex-grow" :results="results"/>
     <Toast/>
   </div>
 </template>

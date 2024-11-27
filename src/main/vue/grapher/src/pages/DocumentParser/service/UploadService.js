@@ -21,7 +21,7 @@ class UploadService {
 
 class UploadServiceImpl extends UploadService {
     uploadFile(formData) {
-        return loadDataWithPost('/file/upload', formData, toast);
+        return loadDataWithPost('/file/upload', formData);
     }
 }
 
