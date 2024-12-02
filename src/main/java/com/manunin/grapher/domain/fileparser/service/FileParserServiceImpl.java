@@ -18,6 +18,14 @@ import java.util.stream.Stream;
 @Component
 public class FileParserServiceImpl implements FileParserService {
 
+    public static final String PROMPT = """
+             Find all relationships of the type "%s" (the type means semantic meaning) in the text: "%s". Return result as a relationships of links in format:
+            <id>,<source>,<target>,<type>. Each line in the text is a separate relationship.
+            For example, if the text is "John resides in New York. Mary lives in Los Angeles." and the type is "lives in", the result should be:
+             1,John,New York,lives in
+             2,Mary,Los Angeles,lives in
+            """;
+    public static final String LINK_TYPE = "lives in";
     private final ChatModel aiClient;
 
     public FileParserServiceImpl(@Qualifier("openAiChatModel") ChatModel chatModel) {
@@ -26,16 +34,8 @@ public class FileParserServiceImpl implements FileParserService {
 
     @Override
     public List<Link> parseFile(InputStream file) {
-        String prompt = """
-                Find all relationships of the type "%s" (the type means semantic meaning) in the text: "%s". Return result as a relationships of links in format:
-               <id>,<source>,<target>,<type>. Each line in the text is a separate relationship.
-               For example, if the text is "John resides in New York. Mary lives in Los Angeles." and the type is "lives in", the result should be:
-                1,John,New York,lives in
-                2,Mary,Los Angeles,lives in
-               """;
-
         String text = processFileLines(file, FileParserServiceImpl::linesToText);
-        String aiResponse = aiClient.call(String.format(prompt, "lives in", text));
+        String aiResponse = aiClient.call(String.format(PROMPT, LINK_TYPE, text));
         return parse(aiResponse.lines());
     }
 

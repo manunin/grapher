@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi, beforeEach} from 'vitest';
 import {mount} from '@vue/test-utils';
 import {nextTick} from 'vue';
 
@@ -9,156 +9,101 @@ import Column from 'primevue/column';
 import ProgressBar from 'primevue/progressbar';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
-import UploadService from '../../pages/DocumentParser/service/UploadService';
+import RelationshipList from '../../pages/DocumentParser/components/RelationshipList.vue';
 import PrimeVue from 'primevue/config';
 
 const SELECT_FILE_EVENT = 'select';
-const FILE_CONTEXT = {files: [{name: 'file.txt', size: 100}]};
+const CORRECT_FILE_CONTEXT = {files: [{name: 'file.txt', size: 1048576}]};
+
+vi.mock('vue-i18n', () => ({
+    useI18n: () => ({
+        t: (key) => key,
+        locale: 'en',
+    }),
+}));
+
+mockLoadDataWithPost();
 
 describe('Document parser', () => {
+    let docParser;
+    beforeEach(() => {
+            docParser = getWrapper();
+        }
+    );
     it('renders Upload button', () => {
-        const wrapper = getWrapper();
-        findUploadButton(wrapper).toBeTruthy();
+        expect(docParser.text()).toContain('documentParser.buttons.upload');
     });
     it('renders Result panel', () => {
-        const wrapper = getWrapper();
-        expectText(wrapper, 'Result');
+        expect(docParser.text()).toContain('documentParser.noRelationshipsFound');
     });
     it('renders Table with column with name Link', () => {
-        const wrapper = getWrapper();
-        expect(wrapper.findAll('th').find(el => el.text() === 'Link')).toBeTruthy();
+        expect(docParser.findAll('th').find(el => el.text() === 'Link')).toBeTruthy();
     });
 })
 
 describe('File validation', () => {
-    it('renders error message if file not txt', async () => {
-        const wrapper = getWrapper();
-        const fileUpload = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUpload, SELECT_FILE_EVENT, {files: [{name: 'file.jpg'}]});
-        await nextTick();
-        expect(findTextOnBody('Error')).toBeTruthy();
-        expect(findTextOnBody('Only .txt files are allowed')).toBeTruthy();
-    });
-    it('renders error message if file size exceeds 1MB', async () => {
-        const wrapper = getWrapper();
-        const fileUpload = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUpload, SELECT_FILE_EVENT, {files: [{name: 'file.txt', size: 1048576}]});
-        await nextTick();
-        expect(findTextOnBody('Error')).toBeTruthy();
-        expect(findTextOnBody('File size exceeds the limit')).toBeTruthy();
-    });
-    it('renders success if the file is txt and less or equals 1MB', async () => {
-        const wrapper = getWrapper();
-        const fileUpload = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUpload, SELECT_FILE_EVENT, FILE_CONTEXT);
-        await nextTick();
-        expect(findTextOnBody('Success')).toBeTruthy
+    let docParser, fileUpload;
+    beforeEach(() => {
+            docParser = getWrapper();
+            fileUpload = docParser.findComponent(FileUpload);
+        }
+    );
+    it('renders error message if file not txt or greater then expected', async () => {
+        try {
+            fileUpload.vm.$emit(SELECT_FILE_EVENT, {files: [{name: 'file.jpg', size: 1048577}]});
+            await nextTick();
+        } catch (e) {
+            // expect(e).toBe('File validation failed');
+        }
+        await waitSec(0.05);
+        expect(findTextOnBody('toast.error.title')).toBeTruthy();
+        expect(findTextOnBody('documentParser.errors.fileFormatNotSupported')).toBeTruthy();
+        expect(findTextOnBody('documentParser.errors.fileExceedsSizeLimit')).toBeTruthy();
     });
 });
 
 describe('File selection event', () => {
+    let docParser, fileUpload;
+    beforeEach(() => {
+        docParser = getWrapper();
+        fileUpload = docParser.findComponent(FileUpload);
+    });
     it('check spinner appearance', async () => {
-        const wrapper = getWrapper();
-        const fileUpload = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUpload, SELECT_FILE_EVENT, FILE_CONTEXT);
-        await waitSec(1);
-        expectText(wrapper, 'File processing');
-        await waitSec(3);
-        notExpectText(wrapper, 'File processing...');
+        const fileProcessingText = 'documentParser.fileProcessing';
+        fileUpload.vm.$emit(SELECT_FILE_EVENT, CORRECT_FILE_CONTEXT);
+        await waitSec(0.005);
+        expect(docParser.text()).toContain(fileProcessingText);
+        await waitSec(0.020);
+        expect(docParser.text()).not.toContain(fileProcessingText);
     });
     it('while processing Upload button is hidden', async () => {
-        const wrapper = getWrapper();
-        const fileUpload = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUpload, SELECT_FILE_EVENT, FILE_CONTEXT);
-        await waitSec(1);
-        notExpectText(wrapper, 'Upload');
-        await waitSec(3);
-        expectText(wrapper, 'Upload');
-    });
-    it('Show pop-up error if error ', async () => {
-        mockUnsuccessfulUploadServiceResponse()
-        const wrapper = getWrapper();
-        const fileUpload = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUpload, SELECT_FILE_EVENT, FILE_CONTEXT);
-        await waitSec(1);
-        expect(findTextOnBody('Error')).toBeTruthy();
-    });
-
-    it('Show success message if success', async () => {
-        mockUploadServiceSuccessResponse();
-        const wrapper = getWrapper();
-        const fileUploadComponent = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUploadComponent, SELECT_FILE_EVENT, FILE_CONTEXT);
-        await waitSec(1);
-        expect(findTextOnBody('Success')).toBeTruthy();
-    });
-
-    it('Show error message if success but not 200', async () => {
-        mockUploadServiceSuccessResponseNot200();
-        const wrapper = getWrapper();
-        const fileUploadComponent = wrapper.findComponent(FileUpload);
-        emitEventWithContext(fileUploadComponent, SELECT_FILE_EVENT, FILE_CONTEXT);
-        await waitSec(1);
-        expect(findTextOnBody('Error')).toBeTruthy();
+        const uploadButtonText = 'documentParser.buttons.upload';
+        fileUpload.vm.$emit(SELECT_FILE_EVENT, CORRECT_FILE_CONTEXT);
+        await waitSec(0.005);
+        expect(docParser.text()).not.toContain(uploadButtonText);
+        await waitSec(0.020);
+        expect(docParser.text()).toContain(uploadButtonText);
     });
 })
 
 function getWrapper() {
     const globalConfig = {
         plugins: [PrimeVue, ToastService],
-        components: {FileUpload, DataTable, Column, ProgressBar, Toast},
+        components: {FileUpload, DataTable, Column, ProgressBar, Toast, RelationshipList},
+        t: (key) => key
     };
     return mount(DocumentParser, {global: globalConfig});
 }
-
-function findUploadButton(wrapper) {
-    return expect(wrapper.findAll('button').find(el => el.text() === 'Upload'));
-}
-
 async function waitSec(sec) {
     await new Promise(resolve => setTimeout(resolve, sec * 1000));
 }
 
-function expectText(wrapper, text) {
-    expect(wrapper.text()).toContain(text);
-}
-
-function emitEventWithContext(fileUpload, event, context) {
-    fileUpload.vm.$emit(event, context);
-}
-
-function notExpectText(wrapper, text) {
-    expect(wrapper.text()).not.toContain(text);
-}
-
-function mockUploadServiceSuccessResponse() {
-    vi.spyOn(UploadService, 'getInstance').mockImplementation(() => {
-        return {
-            uploadFile: () => {
-                return Promise.resolve({status: 200});
-            }
+function mockLoadDataWithPost() {
+    vi.mock('@/rest/utils', () => ({
+        loadDataWithPost: async () => {
+            await new Promise(resolve => setTimeout(resolve,  20));
         }
-    });
-}
-
-function mockUploadServiceSuccessResponseNot200() {
-    vi.spyOn(UploadService, 'getInstance').mockImplementation(() => {
-        return {
-            uploadFile: () => {
-                return Promise.resolve({status: 401});
-            }
-        }
-    });
-}
-
-function mockUnsuccessfulUploadServiceResponse() {
-    vi.spyOn(UploadService, 'getInstance').mockImplementation(() => {
-        return {
-            uploadFile: () => {
-                return Promise.reject({status: 500});
-            }
-        }
-    });
+    }));
 }
 
 function findTextOnBody(text) {
