@@ -11,7 +11,6 @@
       <progress-bar mode="indeterminate" style="height: 6px"/>
     </template>
     <relationship-list class="flex-grow" :results="results"/>
-    <Toast/>
   </div>
 </template>
 
