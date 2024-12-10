@@ -1,6 +1,6 @@
 <template>
   <div class="card flex flex-col justify-center h-screen items-center">
-    <h1 class="text-4xl font-bold mb-4">grapher</h1>
+    <g-brand-label>{{ t('login.brandLabel') }}</g-brand-label>
     <Form v-slot="$form"
           :initialValues="initialValues"
           :resolver="resolver"
@@ -9,19 +9,27 @@
       <FormField class="flex flex-col gap-2">
         <InputText name="username"
                    type="text"
-                   placeholder="Username"
+                   :placeholder="t('login.username')"
                    fluid/>
-        <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">
-          {{$form.username.error?.message}}
+        <Message v-if="$form.username?.invalid"
+                 severity="error"
+                 size="small"
+                 variant="simple">
+          {{ $form.username.error?.message }}
         </Message>
       </FormField>
       <FormField class="flex flex-col gap-2">
-        <Password name="password" type="text" placeholder="Password" :feedback="false" toggleMask fluid/>
+        <Password name="password"
+                  type="text"
+                  :placeholder="t('login.password')"
+                  :feedback="false"
+                  toggleMask
+                  fluid/>
         <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
-          {{$form.password.error?.message}}
+          {{ $form.password.error?.message }}
         </Message>
       </FormField>
-      <Button type="submit" severity="primary" label="Submit"/>
+      <g-primary-button type="submit" :label="t('login.login')"/>
       <g-social-medial-login-panel/>
     </Form>
   </div>
@@ -33,6 +41,10 @@ import {useToast} from 'primevue/usetoast';
 import {zodResolver} from '@primevue/forms/resolvers/zod';
 import {z} from 'zod';
 import GSocialMedialLoginPanel from "@/components/GSocialMedialLoginPanel.vue";
+import GBrandLabel from "@/components/GBrandLabel.vue";
+import {useI18n} from "vue-i18n";
+
+const {t} = useI18n()
 
 const toast = useToast();
 
@@ -41,21 +53,12 @@ const initialValues = ref({
   password: ''
 });
 
-const resolver =  zodResolver(
+const resolver = zodResolver(
     z.object({
-      username: z.string().min(1, { message: 'Username is required.' }),
+      username: z.string().min(1, {message: t('login.validation.usernameRequired')}),
       password: z.string()
-          .min(1, { message: 'Password is required.' })
-          .max(10, { message: 'Password must be less than 10 characters.' })
-          .refine((value) => /[a-z]/.test(value), {
-            message: 'Must have a lowercase letter.'
-          })
-          .refine((value) => /[A-Z]/.test(value), {
-                message: 'Must have an uppercase letter.'
-          })
-          .refine((value) => /d/.test(value), {
-                message: 'Must have a number.'
-          })
+          .min(1, {message: t('login.validation.passwordMinLength', {min: 1})})
+          .max(10, {message: t('login.validation.passwordMaxLength', {max: 10})})
     })
 );
 

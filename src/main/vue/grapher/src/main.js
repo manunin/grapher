@@ -21,6 +21,7 @@ import Password from 'primevue/password';
 import Message from 'primevue/message';
 import Button from 'primevue/button';
 
+
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 
@@ -28,8 +29,11 @@ import DocumentParser from "@/pages/DocumentParser/DocumentParser.vue";
 import RelationshipList from "@/pages/DocumentParser/components/RelationshipList.vue";
 import Overlay from "@/components/Overlay.vue";
 import GIconButton from "@/components/buttons/GIconButton.vue";
+import GPrimaryButton from "@/components/buttons/GPrimaryButton.vue";
+import GForm from "@/components/form/GForm.vue";
 
 import {createI18n} from "vue-i18n";
+import enLogin from "@/i18n/login/en";
 import enDocumentParser from "@/i18n/documentParser/en";
 import enToast from "@/i18n/toast/en";
 
@@ -38,7 +42,7 @@ const i18n = createI18n({
     locale: 'en',
     fallbackLocale: 'en',
     messages: {
-        en: {...enDocumentParser, ...enToast}
+        en: {...enLogin, ...enDocumentParser, ...enToast}
     }
 });
 
@@ -71,5 +75,7 @@ app.component('Message', Message);
 app.component('Button', Button);
 app.component('Password', Password);
 app.component('GIconButton', GIconButton);
+app.component('GPrimaryButton', GPrimaryButton);
+app.component('GForm', GForm);
 
 app.mount('#app');
